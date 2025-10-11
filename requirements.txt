@@ -1,3 +1,4 @@
+
 streamlit==1.38.0
 pandas
 numpy
@@ -6,6 +7,5 @@ matplotlib
 seaborn
 opencv-python-headless==4.10.0.84
 opencv-contrib-python-headless==4.10.0.84
-streamlit-webrtc==0.47.7
-av==10.0.0
-pillow
+Pillow
+tempfile-helper
