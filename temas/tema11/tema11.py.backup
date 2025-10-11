@@ -1,0 +1,81 @@
+# ============================================================
+# 🤖 PROGRAMA: Clasificador de Imágenes con ANN (Capítulo 11)
+# ------------------------------------------------------------
+# Permite subir una imagen y clasificarla en categorías
+# entrenadas (backpack, dress, footwear) usando una red neuronal.
+# ============================================================
+
+import streamlit as st
+import cv2
+import numpy as np
+import pickle
+from PIL import Image
+import tempfile
+import os
+import sys
+
+# --- Estilos visuales personalizados ---
+st.markdown("""
+    <style>
+    .main {
+        background-color: #0E1117;
+        color: white;
+    }
+    .stButton>button {
+        background-color: #1E88E5;
+        color: white;
+        border-radius: 8px;
+        padding: 8px 20px;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# ✅ Para importar create_features correctamente
+sys.path.append(os.path.join(os.path.dirname(__file__)))
+import create_features as cf
+
+# ---- Cargar los modelos entrenados ----
+MODEL_DIR = "models"
+CODEBOOK_FILE = os.path.join(MODEL_DIR, "codebook.pkl")
+ANN_FILE = os.path.join(MODEL_DIR, "ann.yaml")
+LE_FILE = os.path.join(MODEL_DIR, "le.pkl")
+
+# ---- Inicializar el clasificador ----
+class ImageClassifier:
+    def __init__(self, ann_file, le_file, codebook_file):
+        self.ann = cv2.ml.ANN_MLP_load(ann_file)
+        with open(le_file, "rb") as f:
+            self.le = pickle.load(f)
+        with open(codebook_file, "rb") as f:
+            self.kmeans, self.centroids = pickle.load(f)
+
+    def classify(self, img):
+        img = cf.resize_to_size(img, 150)
+        feature_vector = cf.FeatureExtractor().get_feature_vector(img, self.kmeans, self.centroids)
+        _, prediction = self.ann.predict(feature_vector)
+        label = self.le.inverse_transform(np.asarray(prediction))
+        return label[0]
+
+# ---- Interfaz Streamlit ----
+st.title("🤖 Clasificador Visual - Capítulo 11")
+st.markdown("""
+Este modelo utiliza una **Red Neuronal Artificial (ANN)** para **reconocer objetos** en imágenes.
+Sube una imagen y el sistema predecirá a qué clase pertenece según su entrenamiento previo.
+""")
+
+uploaded_file = st.file_uploader("📸 Sube una imagen para clasificar", type=["jpg", "jpeg", "png"], key="ann_uploader")
+
+if uploaded_file:
+    image = Image.open(uploaded_file)
+    st.image(image, caption="🖼️ Imagen seleccionada", use_column_width=True)
+
+    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        image.save(temp_file.name)
+        img_cv = cv2.imread(temp_file.name)
+
+    with st.spinner("🧠 Analizando con red neuronal..."):
+        classifier = ImageClassifier(ANN_FILE, LE_FILE, CODEBOOK_FILE)
+        result = classifier.classify(img_cv)
+
+    st.success(f"🎯 Resultado: **{result.upper()}**")
+    st.info("✅ Clasificación completada mediante un modelo ANN entrenado.")
