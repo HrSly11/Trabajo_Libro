@@ -29,40 +29,40 @@ if 'tema_seleccionado' not in st.session_state:
 
 # Sidebar
 with st.sidebar:
-    st.header("📚 Temas")
+    st.write("TEMAS")
+    st.write("---")
+    
     for i, tema in enumerate(temas):
         if st.button(f"{i+1}. {tema['titulo']}", key=f"tema_{i}", use_container_width=True):
             st.session_state.tema_seleccionado = i
             st.rerun()
     
-    st.divider()
+    st.write("---")
     
-    if st.button("🏠 Volver al Inicio", use_container_width=True):
+    if st.button("Volver al Inicio", use_container_width=True):
         st.session_state.tema_seleccionado = None
         st.rerun()
 
 # Contenido principal
 if st.session_state.tema_seleccionado is None:
-    st.title("📘 Ejercicios de Visión por Computadora e IA")
-    st.write("Explora los **11 programas** desarrollados. Selecciona un tema desde el menú lateral.")
+    st.title("Ejercicios de Vision por Computadora e IA")
+    st.write("Selecciona un tema desde el menu lateral para comenzar.")
     
-    st.divider()
-    
-    col1, col2 = st.columns(2)
+    st.write("---")
     
     for i, tema in enumerate(temas):
-        with col1 if i % 2 == 0 else col2:
-            with st.container(border=True):
-                st.subheader(f"{i+1}. {tema['titulo']}")
-                st.write(tema['desc'])
-                if st.button(f"Ver Tema {i+1}", key=f"btn{i}", use_container_width=True):
-                    st.session_state.tema_seleccionado = i
-                    st.rerun()
-
+        st.write(f"**{i+1}. {tema['titulo']}**")
+        st.write(tema['desc'])
+        if st.button(f"Ir al Tema {i+1}", key=f"btn{i}"):
+            st.session_state.tema_seleccionado = i
+            st.rerun()
+        st.write("")
 else:
     idx = st.session_state.tema_seleccionado
     tema_actual = temas[idx]
-    st.title(f"{idx+1}. {tema_actual['titulo']}")
+    
+    st.title(f"Tema {idx+1}: {tema_actual['titulo']}")
     st.write(tema_actual['desc'])
-    st.divider()
+    st.write("---")
+    
     modulos[idx].run()
